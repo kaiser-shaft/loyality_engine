@@ -3,7 +3,7 @@ package repository
 import (
 	"sync"
 
-	"github.com/kaiser-shaft/loyality_engine/internal/models"
+	"github.com/kaiser-shaft/loyality_engine/internal/domain/models"
 )
 
 type inMemoryRepo struct {

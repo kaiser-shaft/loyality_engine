@@ -3,29 +3,33 @@ package main
 import (
 	"log/slog"
 	"net/http"
-	"os"
 
+	"github.com/kaiser-shaft/loyality_engine/internal/adapters/repository"
+	"github.com/kaiser-shaft/loyality_engine/internal/adapters/rules"
+	"github.com/kaiser-shaft/loyality_engine/internal/domain/logic"
+	"github.com/kaiser-shaft/loyality_engine/internal/domain/ports"
 	"github.com/kaiser-shaft/loyality_engine/internal/handler"
-	"github.com/kaiser-shaft/loyality_engine/internal/repository"
-	"github.com/kaiser-shaft/loyality_engine/internal/service"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
-
+	// 1. Инфраструктура
 	repo := repository.NewInMemoryRepo()
-	svc := service.NewDiscountService(repo)
-	h := handler.NewHandler(svc)
 
+	// 2. Выбираем активные правила (порядок важен!)
+	activeRules := []ports.DiscountRule{
+		&rules.FoodRule{Rate: 0.1},
+		&rules.BulkRule{N: 4},
+		&rules.ThresholdRule{Limit: 10000, Rate: 0.05},
+	}
+
+	// 3. Собираем ядро
+	engine := logic.NewLoyaltyEngine(repo, activeRules)
+
+	// 4. Подключаем транспортный адаптер
+	h := handler.NewHandler(engine)
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux, h)
 
-	addr := ":8080"
-	slog.Info("server started", "addr", addr)
-
-	if err := http.ListenAndServe(addr, mux); err != nil {
-		slog.Error("server failed", "error", err)
-		os.Exit(1)
-	}
+	slog.Info("server started on :8080")
+	http.ListenAndServe(":8080", mux)
 }

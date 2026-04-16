@@ -5,16 +5,13 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/kaiser-shaft/loyality_engine/internal/models"
+	"github.com/kaiser-shaft/loyality_engine/internal/domain/models"
 	"github.com/kaiser-shaft/loyality_engine/pkg/render"
 )
 
 type DiscountService interface {
 	CalculateAndSave(items []models.Item) (models.Calculation, error)
 	GetHistory() ([]models.Calculation, error)
-}
-
-type CalculateRequest struct {
 }
 
 type Handler struct {
